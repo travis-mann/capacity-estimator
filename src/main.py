@@ -19,6 +19,7 @@ __status__ = "Development"
 
 # --- imports ---
 from bisection import bisection
+from util import *
 
 from matplotlib import pyplot as plt
 import numpy as np
@@ -26,44 +27,12 @@ from scipy.integrate import simps
 from random import randint
 
 
+# --- inputs ---
+data = np.genfromtxt('../input.csv', delimiter=',')
+percent_coverage = 0.7
+
+
 # --- funcs ---
-def generate_data_set(length: int, max_value: int) -> tuple:
-    """
-    purpose: generate 2 arrays or n length
-    :param length: length of arrays to generate
-    :param max_value: max y value to generate
-    :return:
-    """
-    print(f'generating data set with {length} elements and {max_value} max value...')
-    # get x values
-    x_set = np.linspace(0, length - 1, length)
-
-    # generate smooth curve y values
-    y_set = np.array([])
-
-    for idx, x_value in enumerate(x_set):
-        # 1st value boundary condition
-        if idx == 0:
-            y_set = np.append(y_set, max_value / 2)  # 1st element is half max value
-            continue
-
-        y = randint(0, 1)
-        # next value is randomly 1 value up or down from last value to
-        # generate smooth curve
-        last_value = y_set[idx - 1]
-        if y == 0:  # next value is less
-            # don't go below 0
-            y_set = np.append(y_set, max(last_value - 1, 0))
-        elif y == 1:  # next value is more
-            # don't exceed max value
-            y_set = np.append(y_set, min(last_value + 1, max_value))
-        else:
-            raise ValueError("Invalid randint")
-
-    # output dataset
-    return x_set, y_set
-
-
 def get_adjusted_data(given_array: np.array, max_value: float) -> np.array:
     """
     purpose: cap array at given value
@@ -83,21 +52,22 @@ def get_percent_covered(array1: np.array, array2: np.array) -> float:
 
 def get_flat_value(required_coverage: float) -> None:
     """
-    purpose: high level logic for finding flat value where
+    purpose: high level logic for finding flat value where required coverage
+             percent of the curve's area is underneath.
     """
     # get dataset
     # generates test curve
     # x, y = generate_data_set(100, 10)
 
     # extracts dataset from csv
-    data = np.genfromtxt('input.csv', delimiter=',')
+
     x = np.array([row[0] for row in data])
     y = np.array([row[1] for row in data])
 
     # helper function for bisection search
     def coverage_difference(flat_value: float) -> float:
         """
-        purpose:  calculate percent area covereage from curve under flat value
+        purpose:  calculate percent area coverage from curve under flat value
         """
         adjusted_values = get_adjusted_data(y, flat_value)
         percent_covered = get_percent_covered(y, adjusted_values)
@@ -119,4 +89,4 @@ def get_flat_value(required_coverage: float) -> None:
 
 # --- main ---
 if __name__ == "__main__":
-    get_flat_value(0.7)
+    get_flat_value(percent_coverage)
